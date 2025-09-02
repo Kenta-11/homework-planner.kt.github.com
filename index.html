@@ -1,0 +1,495 @@
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Homework Planner</title>
+  <meta name="description" content="Simple web app for students to track homework based on weekly class schedule.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="antialiased selection:bg-slate-900/90 selection:text-white transform-gpu" style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color: var(--text); background-color: var(--bg); background-image: radial-gradient(900px 500px at 110% -10%, var(--bg-accent-1), transparent), radial-gradient(700px 380px at -10% 0%, var(--bg-accent-2), transparent); transition: background-color 150ms ease, color 150ms ease;">
+  <div class="min-h-screen">
+    <header class="border-b backdrop-blur-md sticky top-0 z-40" style="background: var(--card-bg); border-color: var(--border); will-change: backdrop-filter, opacity; transition: opacity 150ms ease;">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="h-8 w-8 rounded-md flex items-center justify-center text-sm font-semibold tracking-tight" style="background: var(--text); color: var(--bg);">HW</div>
+          <div>
+            <h1 class="text-[22px] sm:text-[26px] font-semibold tracking-tight">Homework Planner</h1>
+            <p class="text-sm" style="color: var(--muted);">Track homework per period, auto-save, and share your daily summary.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden sm:flex items-center gap-2 text-sm" style="color: var(--muted);">
+            <i data-lucide="calendar-days" class="w-4 h-4"></i>
+            <span id="today-label">Today</span>
+          </div>
+
+          <!-- Theme toggle -->
+          <button id="themeToggleBtn" class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm border hover:opacity-90 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/30 transition transform-gpu" style="background: var(--card-bg); color: var(--text); border-color: var(--border);">
+            <i data-lucide="sun" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Theme</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <!-- Controls -->
+      <section class="border rounded-xl shadow-sm backdrop-blur-sm transform-gpu" style="background: var(--card-bg); border-color: var(--border);">
+        <div class="p-4 sm:p-5">
+          <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="summarizeBtn" class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 active:scale-[0.99] transition transform-gpu" style="background: var(--text); color: var(--bg);">
+                  <i data-lucide="list-todo" class="w-4 h-4"></i>
+                  <span>Summarize Homework</span>
+                </button>
+
+                <button id="copyBtn" class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20 active:scale-[0.99] transition transform-gpu disabled:opacity-50 disabled:cursor-not-allowed" style="background: var(--card-bg); color: var(--text); border-color: var(--border);" disabled="">
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                  <span>Copy</span>
+                </button>
+
+                <button id="resetBtn" class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/20 active:scale-[0.99] transition transform-gpu" style="background: var(--card-bg); color: var(--text); border-color: var(--border);">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                  <span>Reset</span>
+                </button>
+
+                <button id="exportBtn" class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20 active:scale-[0.99] transition transform-gpu" style="background: var(--card-bg); color: var(--text); border-color: var(--border);">
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                  <span>Export</span>
+                </button>
+
+                <label for="importInput" class="inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20 active:scale-[0.99] transition transform-gpu" style="background: var(--card-bg); color: var(--text); border-color: var(--border);">
+                  <i data-lucide="upload" class="w-4 h-4"></i>
+                  <span>Import</span>
+                </label>
+                <input id="importInput" type="file" accept="application/json" class="hidden">
+              </div>
+            </div>
+            <div class="text-xs" style="color: var(--muted);">
+              Auto-save is on. Export regularly to back up your notes.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Timetable -->
+      <section class="border rounded-xl shadow-sm backdrop-blur-sm transform-gpu" style="background: var(--card-bg); border-color: var(--border);">
+        <div class="p-4 sm:p-5">
+          <div class="overflow-x-auto">
+            <div class="min-w-[760px]">
+              <div class="text-sm mb-3 flex items-center gap-2" style="color: var(--muted);">
+                <i data-lucide="grid-3x3" class="w-4 h-4"></i>
+                <span>Weekly Timetable</span>
+              </div>
+              <div class="rounded-lg overflow-hidden ring-1" style="--tw-ring-color: var(--border); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.02);">
+                <table class="w-full table-fixed border-collapse text-sm">
+                  <thead class="border-b" style="background: color-mix(in srgb, var(--card-bg) 94%, var(--bg) 6%); border-color: var(--border);">
+                    <tr>
+                      <th class="w-24 text-left font-medium px-3 py-3" style="color: var(--muted);">Period</th>
+                      <th class="text-left font-medium px-3 py-3" style="color: var(--muted);">Monday</th>
+                      <th class="text-left font-medium px-3 py-3" style="color: var(--muted);">Tuesday</th>
+                      <th class="text-left font-medium px-3 py-3" style="color: var(--muted);">Wednesday</th>
+                      <th class="text-left font-medium px-3 py-3" style="color: var(--muted);">Thursday</th>
+                      <th class="text-left font-medium px-3 py-3" style="color: var(--muted);">Friday</th>
+                    </tr>
+                  </thead>
+                  <tbody id="timetableBody" class="divide-y" style="--tw-divide-opacity: 1; --tw-divide-color: var(--border);">
+                    <!-- Rows inserted by JS -->
+                  </tbody>
+                </table>
+              </div>
+              <p class="mt-2 text-xs" style="color: var(--muted);">Tip: Notes save automatically. You can export/import anytime.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Summary -->
+      <section id="summarySection" class="border rounded-xl shadow-sm backdrop-blur-sm hidden transform-gpu" style="background: var(--card-bg); border-color: var(--border);">
+        <div class="p-4 sm:p-5">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="notebook-pen" class="w-4 h-4" style="color: var(--muted);"></i>
+              <h2 class="text-[20px] sm:text-[22px] font-semibold tracking-tight">Today’s Summary</h2>
+            </div>
+            <div class="text-xs" id="summaryMeta" style="color: var(--muted);"></div>
+          </div>
+          <div class="rounded-lg border p-3" style="background: color-mix(in srgb, var(--card-bg) 80%, transparent); border-color: var(--border);">
+            <pre id="summaryBox" class="whitespace-pre-wrap text-sm" style="color: var(--text);"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status / Toast -->
+      <div id="statusToast" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 px-3 py-2 rounded-lg text-sm shadow-lg opacity-0 pointer-events-none transition duration-200 transform-gpu translate-y-2 border" style="background: var(--card-bg); color: var(--text); border-color: var(--border); backdrop-filter: saturate(140%) blur(10px); will-change: transform, opacity;"></div>
+    </main>
+  </div>
+
+  <script>
+    // Icons
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+      } catch (e) {}
+    });
+
+    // Theme tokens and toggle (CSS variables only)
+    const THEME_STORAGE_KEY = 'hwTheme';
+    function applyTheme(mode) {
+      const b = document.body.style;
+      if (mode === 'dark') {
+        b.setProperty('--bg', 'rgb(10, 15, 25)');
+        b.setProperty('--text', 'rgb(229, 231, 235)');
+        b.setProperty('--muted', 'rgb(148, 163, 184)');
+        b.setProperty('--border', 'rgba(148, 163, 184, 0.22)');
+        b.setProperty('--card-bg', 'rgba(15, 23, 42, 0.55)');
+        b.setProperty('--bg-accent-1', 'rgba(56, 189, 248, 0.10)');
+        b.setProperty('--bg-accent-2', 'rgba(99, 102, 241, 0.08)');
+        b.setProperty('--field-bg', 'rgba(2, 6, 23, 0.55)');
+        b.setProperty('--today-col-bg', 'rgba(56, 189, 248, 0.16)');
+      } else {
+        b.setProperty('--bg', 'rgb(248, 250, 252)');
+        b.setProperty('--text', 'rgb(15, 23, 42)');
+        b.setProperty('--muted', 'rgb(100, 116, 139)');
+        b.setProperty('--border', 'rgba(15, 23, 42, 0.10)');
+        b.setProperty('--card-bg', 'rgba(255, 255, 255, 0.66)');
+        b.setProperty('--bg-accent-1', 'rgba(56, 189, 248, 0.06)');
+        b.setProperty('--bg-accent-2', 'rgba(99, 102, 241, 0.05)');
+        b.setProperty('--field-bg', 'rgba(255, 255, 255, 0.66)');
+        b.setProperty('--today-col-bg', 'rgba(56, 189, 248, 0.12)');
+      }
+      try { localStorage.setItem(THEME_STORAGE_KEY, mode); } catch (e) {}
+      document.body.setAttribute('data-theme', mode);
+    }
+    function initTheme() {
+      let mode = 'light';
+      try {
+        const stored = localStorage.getItem(THEME_STORAGE_KEY);
+        if (stored === 'light' || stored === 'dark') mode = stored;
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) mode = 'dark';
+      } catch (e) {}
+      applyTheme(mode);
+    }
+    function toggleTheme() {
+      const current = document.body.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    // Bind theme toggle
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.addEventListener('click', toggleTheme, { passive: true });
+    });
+
+    // Constants
+    const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+    const DAY_FULL = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday' };
+    const PERIODS = [1,2,3,4,5,6,7];
+    const STORAGE_KEY = 'hwPlannerNotes';
+
+    // Schedule
+    const SCHEDULE = {
+      1: { Mon: 'Thai',    Tue: 'Science',         Wed: '-',               Thu: 'English',          Fri: 'Math' },
+      2: { Mon: 'Science', Tue: 'Science',         Wed: 'Thai',            Thu: 'Chinese',          Fri: 'Thai' },
+      3: { Mon: 'Math',    Tue: 'Thai',            Wed: '-',               Thu: 'Thai',             Fri: '-'    },
+      4: { Mon: 'PE',      Tue: '-',               Wed: 'Computer Science',Thu: 'Reading',          Fri: '-'    },
+      5: { Mon: 'Music',   Tue: 'Art',             Wed: 'Phonics',         Thu: 'English',          Fri: 'History' },
+      6: { Mon: '-',       Tue: '-',               Wed: 'Math',            Thu: 'Math',             Fri: 'Health/PE' },
+      7: { Mon: 'English', Tue: 'English',         Wed: 'Social Studies',  Thu: 'Lab',              Fri: '-'    },
+    };
+
+    // State
+    let notes = loadNotes();
+    let summaryText = '';
+    const todayInfo = getTodayInfo();
+
+    // Elements
+    const bodyEl = document.getElementById('timetableBody');
+    const todayLabel = document.getElementById('today-label');
+    const summarizeBtn = document.getElementById('summarizeBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importInput = document.getElementById('importInput');
+    const summarySection = document.getElementById('summarySection');
+    const summaryBox = document.getElementById('summaryBox');
+    const summaryMeta = document.getElementById('summaryMeta');
+    const toastEl = document.getElementById('statusToast');
+
+    // Initialize UI
+    renderTodayLabel();
+    buildTable();
+    attachHandlers();
+
+    // Functions
+    function getTodayInfo() {
+      const d = new Date();
+      const jsDay = d.getDay(); // 0-6, 1=Mon
+      const isWeekday = jsDay >= 1 && jsDay <= 5;
+      return {
+        jsDay,
+        short: isWeekday ? DAYS[jsDay - 1] : null,
+        full: isWeekday ? DAY_FULL[DAYS[jsDay - 1]] : null,
+        isoDate: d.toISOString().slice(0,10),
+      };
+    }
+
+    function renderTodayLabel() {
+      if (todayInfo.short) {
+        todayLabel.textContent = `${todayInfo.full}`;
+      } else {
+        todayLabel.textContent = 'Weekend';
+      }
+    }
+
+    function emptyNotesStructure() {
+      const n = {};
+      for (const day of DAYS) {
+        n[day] = {};
+        for (const p of PERIODS) n[day][p] = '';
+      }
+      return n;
+    }
+
+    function loadNotes() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return emptyNotesStructure();
+        const parsed = JSON.parse(raw);
+        for (const day of DAYS) {
+          if (!parsed[day]) parsed[day] = {};
+          for (const p of PERIODS) if (typeof parsed[day][p] !== 'string') parsed[day][p] = '';
+        }
+        return parsed;
+      } catch (e) {
+        return emptyNotesStructure();
+      }
+    }
+
+    function saveNotesDebounced(day, period, value) {
+      const key = `${day}-${period}`;
+      if (!window._saveTimers) window._saveTimers = {};
+      clearTimeout(window._saveTimers[key]);
+      window._saveTimers[key] = setTimeout(() => {
+        notes[day][period] = value;
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+        } catch (e) {}
+      }, 200);
+    }
+
+    function buildTable() {
+      bodyEl.innerHTML = '';
+      for (const p of PERIODS) {
+        const tr = document.createElement('tr');
+
+        // Period header col
+        const th = document.createElement('th');
+        th.className = 'text-left align-top bg-transparent font-medium px-3 py-3 border-b';
+        th.style.color = 'var(--text)';
+        th.style.borderColor = 'var(--border)';
+        th.textContent = `Period ${p}`;
+        tr.appendChild(th);
+
+        // Day columns
+        for (let i = 0; i < DAYS.length; i++) {
+          const day = DAYS[i];
+          const subject = SCHEDULE[p][day] || '-';
+          const isOff = subject.trim() === '-';
+          const isTodayCol = todayInfo.short === day;
+
+          const td = document.createElement('td');
+          td.className = 'align-top px-3 py-3 border-b';
+          td.style.borderColor = 'var(--border)';
+          td.style.backgroundColor = isTodayCol ? 'var(--today-col-bg)' : 'transparent';
+
+          // Subject label
+          const label = document.createElement('div');
+          label.className = 'flex items-center justify-between';
+          const subjColor = isOff ? 'var(--muted)' : 'var(--text)';
+          label.innerHTML = `
+            <span class="text-[13px] font-medium" style="color:${subjColor}">${subject}</span>
+            ${isTodayCol ? '<span class="text-[10px] px-1.5 py-0.5 rounded border" style="background: rgba(56,189,248,0.12); color: rgb(14,165,233); border-color: rgba(56,189,248,0.35);">Today</span>' : ''}
+          `;
+          td.appendChild(label);
+
+          // Textarea
+          const ta = document.createElement('textarea');
+          ta.className = [
+            'mt-2 w-full min-h-[64px] rounded-md',
+            'border bg-transparent',
+            'text-sm placeholder-slate-400',
+            'focus:outline-none focus:ring-2 focus:ring-slate-900/10',
+            'hover:opacity-95',
+            'disabled:bg-transparent disabled:text-slate-400 disabled:cursor-not-allowed',
+            'transition transform-gpu'
+          ].join(' ');
+          ta.style.borderColor = 'var(--border)';
+          ta.style.color = 'var(--text)';
+          ta.style.background = isOff ? 'transparent' : 'var(--field-bg)';
+          ta.placeholder = isOff ? 'No class this period' : 'Add homework or notes...';
+          ta.disabled = isOff;
+          ta.dataset.day = day;
+          ta.dataset.period = p;
+
+          if (!isOff) {
+            const val = (notes?.[day]?.[p]) || '';
+            ta.value = val;
+          }
+
+          ta.addEventListener('input', (e) => {
+            if (isOff) return;
+            const value = e.target.value;
+            saveNotesDebounced(day, p, value);
+          });
+
+          td.appendChild(ta);
+          tr.appendChild(td);
+        }
+
+        bodyEl.appendChild(tr);
+      }
+    }
+
+    function summarizeToday() {
+      if (!todayInfo.short) {
+        const txt = 'Homework Summary\nNo classes today.';
+        setSummary(txt, '—');
+        showToast('It’s the weekend. No classes today.');
+        return;
+      }
+      const day = todayInfo.short;
+      const lines = ['Homework Summary'];
+      for (const p of PERIODS) {
+        const subject = SCHEDULE[p][day];
+        if (!subject || subject.trim() === '-') continue;
+        const note = (notes?.[day]?.[p] || '').trim();
+        lines.push(`${subject}: ${note}`);
+      }
+      const result = lines.join('\n');
+      setSummary(result, `${DAY_FULL[day]} • ${todayInfo.isoDate}`);
+      showToast('Summary generated');
+    }
+
+    function setSummary(text, meta) {
+      summaryText = text;
+      summaryBox.textContent = text;
+      summaryMeta.textContent = meta || '';
+      summarySection.classList.remove('hidden');
+      copyBtn.disabled = !text || !text.trim();
+    }
+
+    async function copySummary() {
+      if (!summaryText || !summaryText.trim()) return;
+      try {
+        await navigator.clipboard.writeText(summaryText);
+        showToast('Summary copied to clipboard');
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = summaryText;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch {}
+        document.body.removeChild(ta);
+        showToast('Summary copied');
+      }
+    }
+
+    function resetAll() {
+      const ok = confirm('Reset all notes and clear local storage? This cannot be undone.');
+      if (!ok) return;
+      try {
+        localStorage.clear();
+      } catch (e) {}
+      notes = emptyNotesStructure();
+      document.querySelectorAll('textarea[data-day][data-period]').forEach(ta => ta.value = '');
+      summaryText = '';
+      summaryBox.textContent = '';
+      summarySection.classList.add('hidden');
+      copyBtn.disabled = true;
+      showToast('All notes reset');
+    }
+
+    function exportData() {
+      const payload = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        notes
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const date = new Date().toISOString().slice(0,10);
+      a.href = url;
+      a.download = `homework_notes_${date}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Exported JSON downloaded');
+    }
+
+    function importData(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          const importedNotes = data?.notes || data;
+          if (!importedNotes || typeof importedNotes !== 'object') throw new Error('Invalid file');
+          notes = emptyNotesStructure();
+          for (const day of DAYS) {
+            for (const p of PERIODS) {
+              const v = importedNotes?.[day]?.[p];
+              notes[day][p] = typeof v === 'string' ? v : '';
+            }
+          }
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+          } catch (e) {}
+          document.querySelectorAll('textarea[data-day][data-period]').forEach(ta => {
+            const d = ta.dataset.day;
+            const per = Number(ta.dataset.period);
+            ta.value = notes?.[d]?.[per] || '';
+          });
+          showToast('Import successful');
+        } catch (e) {
+          showToast('Import failed: invalid JSON');
+        } finally {
+          importInput.value = '';
+        }
+      };
+      reader.onerror = () => {
+        showToast('Import failed: read error');
+        importInput.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function attachHandlers() {
+      summarizeBtn.addEventListener('click', summarizeToday);
+      copyBtn.addEventListener('click', copySummary);
+      resetBtn.addEventListener('click', resetAll);
+      exportBtn.addEventListener('click', exportData);
+      importInput.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        importData(file);
+      });
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+      toastEl.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toastEl.classList.remove('opacity-100', 'translate-y-0');
+        toastEl.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+      }, 1600);
+    }
+  </script>
+
+</body></html>
